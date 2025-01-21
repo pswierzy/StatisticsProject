@@ -10,11 +10,66 @@ def desribe_important(df):
     stats = df[important_columns].describe().round(2)
     print(stats)
 
+def num_in_cities(df):
+    plt.figure(figsize = (10,5))
+    df = df.groupby(['city'])['price'].count().reset_index()
+    df = df.sort_values(by = 'price')
+
+    plt.xlabel('Miasto')
+    plt.ylabel('Ilość mieszkań')
+    plt.title('Ilość mieszkań w bazie danych w poszczególnych miastach')
+
+    axis = plt.gca()
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+
+    plt.bar(df['city'], df['price'])
+    
+    plt.grid(True, axis='y', linestyle = ':', alpha=0.5)
+    plt.xticks(rotation = 45)
+    plt.tight_layout()
+    plt.show()
+
+def num_in_date(df):
+    plt.figure(figsize = (10,5))
+    df = df.groupby(['date'])['price'].count().reset_index()
+    df = df.sort_values(by = 'date')
+
+    plt.xlabel('Data')
+    plt.ylabel('Ilość mieszkań')
+    plt.title('Ilość mieszkań w bazie danych w poszczególnych miesiącach')
+
+    axis = plt.gca()
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+
+    plt.bar(df['date'], df['price'])
+    
+    plt.grid(True, axis='y', linestyle = ':', alpha=0.5)
+    plt.xticks(rotation = 45)
+    plt.tight_layout()
+    plt.show()
+
+def scatter_plot_price_meters(df):
+
+    plt.figure(figsize = (12,8))
+    sns.scatterplot(data=df, x='squareMeters', y='price', alpha=0.3)
+    sns.regplot(data=df, x='squareMeters', y='price', scatter=False, color='red', line_kws={"lw": 2})
+
+    plt.title('Rozkład punktowy mieszkań')
+    
+    axis = plt.gca()
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+
+    plt.grid(True, axis='y', linestyle='--', alpha=0.5)
+    plt.xticks(rotation = 45)
+ 
+    plt.tight_layout()
+    plt.show()
+
 def boxplot_city_price(df):
 
-    df_sorted = df.sort_values(by = 'price', ascending = False)
+    df = df.sort_values(by = 'price', ascending = False)
     plt.figure(figsize=(12, 8))
-    sns.boxplot(x = 'city', y='price', data = df_sorted, hue = 'city', palette = 'viridis', dodge = False)
+    sns.boxplot(x = 'city', y='price', data = df, hue = 'city', palette = 'viridis', dodge = False)
 
     plt.xlabel('Miasto')
     plt.ylabel('Cena mieszkania (PLN)')
@@ -32,12 +87,11 @@ def boxplot_city_price(df):
 def boxplot_price_per_meter_sqared(df):
 
     df['price_per_sqm'] = df['price'] / df['squareMeters']
-    df_sorted = df.sort_values(by = 'price_per_sqm', ascending = False)
     plt.figure(figsize=(12, 8))
-    sns.boxplot(x = 'city', y='price_per_sqm', data = df_sorted, hue = 'city', palette = 'viridis', dodge = False)
+    sns.boxplot(x = 'city', y='price_per_sqm', data = df, hue = 'city', palette = 'viridis', dodge = False)
 
     plt.xlabel('Miasto')
-    plt.ylabel('Cena metru kwadratowego (PLN)')
+    plt.ylabel('Cena metra kwadratowego (PLN)')
     plt.title('Rozkład cen metra kwadratowego w zależności od miasta')
 
     axis = plt.gca()
@@ -52,7 +106,7 @@ def boxplot_price_per_meter_sqared(df):
 def price_per_m2_compared_to_mean_salary(df):
 
     # sources: https://300gospodarka.pl/news/oto-mapa-polskich-plac-mamy-nowy-ranking-zarobkow-w-najwiekszych-miastach-grafika
-    # https://zarobki.pracuj.pl/kalkulator-wynagrodzen/10045-brutto
+    # https://zarobki.pracuj.pl/kalkulator-wynagrodzen/
     # dane na 04.2024 
     salary_map = {
         'warszawa': 7178,
@@ -120,8 +174,12 @@ def hist_building_material_build_year(df):
 
     plt.figure(figsize=(15,5))
     plt.title("Materiał budowy, a data budowy")
-    plt.hist(df[df['buildingMaterial'] == 'brick']['buildYear'], bins=20, label="Brick")
-    plt.hist(df[df['buildingMaterial'] == 'concreteSlab']['buildYear'], bins=20, label="Slabs of Concrete")
+    plt.hist(df[df['buildingMaterial'] == 'brick']['buildYear'], bins=20, label="Cegła")
+    plt.hist(df[df['buildingMaterial'] == 'concreteSlab']['buildYear'], bins=20, label="Płyta betonowa")
+    
+    axis = plt.gca()
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+    
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -130,9 +188,13 @@ def hist_type_build_year(df):
 
     plt.figure(figsize=(15,5))
     plt.title("Typ budynku, a data budowy")
-    plt.hist(df[df['type'] == 'blockOfFlats']['buildYear'], bins=20, label="block of flats")
-    plt.hist(df[df['type'] == 'apartmentBuilding']['buildYear'], bins=20, label="apartment building")
-    plt.hist(df[df['type'] == 'tenement']['buildYear'], bins=20, label="tenement")
+    plt.hist(df[df['type'] == 'blockOfFlats']['buildYear'], bins=20, label="blok mieszkalny")
+    plt.hist(df[df['type'] == 'apartmentBuilding']['buildYear'], bins=20, label="apartmentowiec")
+    plt.hist(df[df['type'] == 'tenement']['buildYear'], bins=20, label="kamienica")
+    
+    axis = plt.gca()
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+    
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -148,18 +210,14 @@ def hist_size(df):
 
 def floor_data(df):
 
-    plt.figure(figsize = (10,10))
+    plt.figure(figsize = (8,8))
 
-    df.groupby(['floor', 'floorCount'])['price'].count()
+    df = df.groupby(['floor', 'floorCount'])['price'].count().reset_index()
     df = df.sort_values(by = 'floor', ascending = True)
-    df.rename(columns = {'price':'count'}, inplace = True)
-    df.reset_index(inplace=True)
-    df['count'] = df['count'].max() - df['count']
 
-    plt.title('Piętra')
-    plt.xlabel('ilość pięter budynku')
-    plt.ylabel('piętro mieszkania')
-    plt.scatter(df['floorCount'], df['floor'], c=df['count'], cmap='viridis', s=80, marker='s')
+    plt.xlabel('Ilość pięter budynku')
+    plt.ylabel('Piętro mieszkania')
+    plt.scatter(df['floorCount'], df['floor'], c=df['price'], cmap='coolwarm', s=80, marker='s')
     plt.show()
 
 def features_stats(df):
@@ -178,34 +236,72 @@ def features_stats(df):
         subplot = fig.add_subplot(2,3,i)
         stats = get_feature_stats(feature)
         subplot.set_title(feature)
-        subplot.barh(stats['city'], stats['percentage'])
+        subplot.barh(stats['city'], stats['percentage'], color = 'skyblue')
         subplot.set_xlim(0,1)
         subplot.xaxis.set_major_formatter(tick.PercentFormatter(1))
+        subplot.grid(True, axis = 'x', linestyle = ':', alpha = 0.5)
+
     
     plt.subplots_adjust(wspace = 0.8)
     plt.tight_layout()
     plt.show()
 
-def history_of_prices(df):
-    df['date'] = pd.to_datetime(df['date'], format = '%Y-%m')
+def avg_cost_with_and_without_features(df):
+    
+    features = ['hasParkingSpace', 'hasBalcony', 'hasElevator', 'hasSecurity', 'hasStorageRoom']
+    fig = plt.figure(figsize = (10, 6))
+    i = 0
+    handles = []
+    labels = []
 
+    for feature in features:
+        i += 1
+        subplot = fig.add_subplot(2,3,i)
+        stats = df.groupby(feature)['price'].agg(
+            mean_price = 'mean',
+            median_price = 'median'
+        ).reset_index()
+
+        bar_width = 0.4
+        x = stats[feature]
+        mean_bar = subplot.bar(x - bar_width / 2, stats['mean_price'], bar_width,
+                     label = 'Średnia', color = 'skyblue')
+        median_bar = subplot.bar(x + bar_width / 2, stats['median_price'], bar_width,
+                     label = 'Mediana', color = 'orange')
+    
+        if i == 1:
+            handles.extend([mean_bar, median_bar])
+            labels.extend(['Średnia', 'Mediana'])
+
+        subplot.set_title(feature)
+        subplot.set_xlim(-0.5, 1.5)
+        subplot.set_xticks([0, 1])
+        subplot.set_xticklabels(['no', 'yes'])
+        subplot.grid(True, axis = 'y', linestyle = ':', alpha = 0.5)
+    
+    plt.subplots_adjust(wspace = 0.8)
+    plt.tight_layout()
+    plt.legend(handles, labels, loc = 'lower right', bbox_to_anchor = (2.2, 0.3), ncol = 2)
+    plt.show()
+
+def history_of_prices(df):
+    
     df_mean = df.groupby('date')['price'].mean().reset_index()
     df_median = df.groupby('date')['price'].median().reset_index()
-    
-    plt.figure(figsize=(12, 6))
-    plt.plot(df_mean['date'], df_mean['price'], marker='o', label='Średnia cena')
-    plt.plot(df_median['date'], df_median['price'], marker='o', label='Mediana ceny', linestyle='--')
 
-    plt.xlabel('data')
-    plt.ylabel('cena mieszkań')
-    plt.title(f'Zmiana ceny mieszkań w czasie')
+    plt.figure(figsize=(10, 5))
+    plt.plot(df_mean['date'], df_mean['price'], marker='o', label='Średnia')
+    plt.plot(df_median['date'], df_median['price'], marker='o', label='Mediana', linestyle='--')
+
+    plt.xlabel('Data')
+    plt.ylabel('Cena mieszkań')
+    plt.title('Zmiana ceny mieszkań w czasie')
 
     axis = plt.gca()
     axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
 
     plt.grid(True, axis='y', linestyle='--', alpha=0.5)
-    plt.xticks(rotation = 45)
- 
+
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -217,10 +313,10 @@ def dist_from_centre_cost(df):
     df = df.groupby('mid_point')['price'].mean().reset_index()
 
     plt.figure(figsize = (12,6))
-    plt.plot(df['mid_point'].astype(str), df['price'], marker = 'o')
+    plt.plot(df['mid_point'], df['price'], marker = 'o')
     
-    plt.xlabel('odległość od centrum (km)')
-    plt.ylabel('cena mieszkań')
+    plt.xlabel('Odległość od centrum (km)')
+    plt.ylabel('Cena mieszkań')
     plt.title('Zmiana ceny mieszkań w zależności od odległości od centrum')
 
     axis = plt.gca()
@@ -240,10 +336,10 @@ def dist_from_centre_m2_cost(df):
     df = df.groupby('mid_point')['price_per_m2'].mean().reset_index()
 
     plt.figure(figsize = (12,6))
-    plt.plot(df['mid_point'].astype(str), df['price_per_m2'], marker = 'o')
+    plt.plot(df['mid_point'], df['price_per_m2'], marker = 'o')
     
-    plt.xlabel('odległość od centrum (km)')
-    plt.ylabel('cena metra kwadratowego')
+    plt.xlabel('Odległość od centrum (km)')
+    plt.ylabel('Cena metra kwadratowego')
     plt.title('Zmiana ceny metra kwadratowego w zależności od odległości od centrum')
 
     axis = plt.gca()
@@ -255,6 +351,20 @@ def dist_from_centre_m2_cost(df):
     plt.tight_layout()
     plt.show()
 
+def meters_dist_from_centre(df):
+    df['distance_group'] = pd.cut(df['centreDistance'], bins = 15)
+    df['mid_point'] = df['distance_group'].apply(lambda x: round(x.mid, 1))
+    df = df.groupby('mid_point')['squareMeters'].mean().reset_index()
+
+    plt.figure(figsize = (12,6))
+    plt.plot(df['mid_point'], df['squareMeters'], marker = 'o')
+    
+    plt.xlabel('Odległość od centrum (km)')
+    plt.ylabel('Średni metraż mieszkań')
+    plt.title('Wielkość mieszkań w zależności od odległości od centrum')
+
+    plt.show()
+
 def dist_from_school_cost(df):
 
     df['distance_group'] = pd.cut(df['schoolDistance'], bins = 10)
@@ -262,10 +372,10 @@ def dist_from_school_cost(df):
     df = df.groupby('mid_point')['price'].mean().reset_index()
 
     plt.figure(figsize = (12,6))
-    plt.plot(df['mid_point'].astype(str), df['price'], marker = 'o')
+    plt.plot(df['mid_point'], df['price'], marker = 'o')
     
-    plt.xlabel('odległość od szkoły (km)')
-    plt.ylabel('cena mieszkań')
+    plt.xlabel('Odległość od szkoły (km)')
+    plt.ylabel('Cena mieszkań')
     plt.title('Zmiana ceny mieszkań w zależności od odległości od szkoły')
 
     axis = plt.gca()
@@ -284,10 +394,10 @@ def dist_from_college_cost(df):
     df = df.groupby('mid_point')['price'].mean().reset_index()
 
     plt.figure(figsize = (12,6))
-    plt.plot(df['mid_point'].astype(str), df['price'], marker = 'o')
+    plt.plot(df['mid_point'], df['price'], marker = 'o')
     
-    plt.xlabel('odległość od szkoły wyższej (km)')
-    plt.ylabel('cena mieszkań')
+    plt.xlabel('Odległość od szkoły wyższej (km)')
+    plt.ylabel('Cena mieszkań')
     plt.title('Zmiana ceny mieszkań w zależności od odległości od szkoły wyższej')
 
     axis = plt.gca()
@@ -320,40 +430,6 @@ def poi_count_dist_from_centre(df):
     plt.tight_layout()
     plt.show()
 
-def meters_dist_from_centre(df):
-    df['distance_group'] = pd.cut(df['centreDistance'], bins = 15)
-    df['mid_point'] = df['distance_group'].apply(lambda x: round(x.mid, 1))
-    df = df.groupby('mid_point')['squareMeters'].mean().reset_index()
-
-    plt.figure(figsize = (12,6))
-    plt.plot(df['mid_point'].astype(float), df['squareMeters'], marker = 'o')
-    
-    plt.xlabel('odległość od centrum (km)')
-    plt.ylabel('średni metraż mieszkań')
-    plt.title('Wielkość mieszkań w zależności od odległości od centrum')
-
-    
-    plt.show()
-
-def mean_cost_with_and_without_features(df):
-    
-    features = ['hasParkingSpace', 'hasBalcony', 'hasElevator', 'hasSecurity', 'hasStorageRoom']
-    fig = plt.figure(figsize = (10, 6))
-    i = 0
-    for feature in features:
-        i += 1
-        subplot = fig.add_subplot(2,3,i)
-        stats = df.groupby(feature)['price'].agg(
-            mean_price = 'mean',
-            median_price = 'median'
-        ).reset_index()
-        subplot.set_title(feature)
-        subplot.hist(stats[feature], stats['mean_price'])
-    
-    plt.subplots_adjust(wspace = 0.8)
-    plt.tight_layout()
-    plt.show()
-
 def correlation(df):
 
     type_price_avg = df.groupby('type')['price'].mean()
@@ -382,24 +458,9 @@ def correlation(df):
     plt.tight_layout()
     plt.show()
 
-def scatter_plot_price_meters(df):
-
-    plt.figure(figsize = (12,8))
-    sns.scatterplot(data=df, x='squareMeters', y='price', alpha=0.3)
-
-    plt.title('Rozkład punktowy mieszkań')
-    
-    axis = plt.gca()
-    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
-
-    plt.grid(True, axis='y', linestyle='--', alpha=0.5)
-    plt.xticks(rotation = 45)
- 
-    plt.tight_layout()
-    plt.show()
 
 conn = sqlite3.connect('apartments.db')
 query = "SELECT * FROM apartments_sale"
 df = pd.read_sql_query(query, conn)
 #df = df.drop_duplicates(subset='id', keep='last')
-desribe_important(df)
+dist_from_college_cost(df)

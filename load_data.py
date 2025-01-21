@@ -31,6 +31,17 @@ def load_data_to_sqlite():
     # Wczytanie plików ze sprzedażą mieszkań
     sale_files = glob.glob(os.path.join(data_directory, 'apartments_pl_*.csv'))
     
+    # Pobranie wszystkich tabel w bazie danych
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
+    
+    # Usunięcie każdej tabeli
+    for table in tables:
+        table_name = table[0]
+        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+        print(f"Tabela {table_name} została usunięta.")
+    
     for file in sale_files:
         # Wczytanie danych
         df = pd.read_csv(file)
