@@ -1,6 +1,8 @@
 import sqlite3
 import pandas as pd
 import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tick
 import numpy as np
@@ -458,9 +460,67 @@ def correlation(df):
     plt.tight_layout()
     plt.show()
 
+def predictions(df):
+
+    type_price_avg = df.groupby('type')['price'].mean()
+    type_sorted = type_price_avg.sort_values(ascending=True).index
+    type_mapping = {type_: idx for idx, type_ in enumerate(type_sorted)}
+    df['type_numerical'] = df['type'].map(type_mapping)
+    
+    city_price_avg = df.groupby('city')['price'].mean()
+    city_sorted = city_price_avg.sort_values(ascending=True).index
+    city_mapping = {city: idx for idx, city in enumerate(city_sorted)}
+    df['city_numerical'] = df['city'].map(city_mapping)
+
+    numeric_cols = ['squareMeters', 'floor', 'buildYear', 'centreDistance', 
+                'poiCount', 'schoolDistance', 'collegeDistance',
+                'hasParkingSpace', 'hasBalcony', 'hasElevator', 'hasSecurity',
+                'hasStorageRoom', 'type_numerical', 'city_numerical']
+
+    df = df.dropna(subset = numeric_cols)
+
+    y = df['price']
+    X = df[numeric_cols]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
+
+    reg = LinearRegression()
+
+    reg.fit(X_train, y_train)
+    
+    score = reg.score(X_test, y_test)
+    
+    print(score)
+
+    residuals = y_test - reg_y_pred
+    plt.scatter(reg_y_pred, residuals)
+    plt.title('Residual Plot')
+    plt.xlabel('Predicted Values')
+    plt.ylabel('Residuals')
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.show()
+
+    reg_y_pred = reg.predict(X_test)
+
+    min_val = min(min(y_test), min(reg_y_pred))
+    max_val = max(max(y_test), max(reg_y_pred))
+    ideal_line = np.linspace(min_val, max_val, 100)
+
+    plt.figure(figsize=(10, 10))
+    sns.scatterplot(x=y_test, y=reg_y_pred)
+    plt.plot(ideal_line, ideal_line, '--', color='red', label='Idealny wynik')
+
+    axis = plt.gca()
+    axis.xaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+    axis.yaxis.set_major_formatter(tick.FuncFormatter(lambda x, _: f'{int(x):,}'.replace(',', ' ')))
+
+    plt.xlabel('Faktyczne wartości')
+    plt.ylabel('Przewidziane wartości')
+    plt.title('Faktyczne vs przewidywane wartości')
+    plt.legend()
+    plt.show()
 
 conn = sqlite3.connect('apartments.db')
 query = "SELECT * FROM apartments_sale"
 df = pd.read_sql_query(query, conn)
-#df = df.drop_duplicates(subset='id', keep='last')
-dist_from_college_cost(df)
+predictions(df)
